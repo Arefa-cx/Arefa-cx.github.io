@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>日麻风盘</title>
+    <style>
+        body {
+            background: #f5f2eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .compass-container {
+            position: relative;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 500px;
+            height: 500px;
+        }
+        #windCompass {
+            width: 500px;
+            height: 500px;
+            background: #fff;
+            border: 10px solid #332e29;
+            position: relative;
+            transition: transform 1s ease;
+            transform-origin: center center;
+            overflow: hidden;
+        }
+        .wind {
+            position: absolute;
+            color: #c62828;
+            font-size: 35px;
+            font-weight: bold;
+            transform-origin: center center;
+            width: 37px;
+            height: 37px;
+            line-height: 37px;
+            text-align: center;
+            z-index: 5;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .north { bottom: 12px; right: 12px; transform: rotate(0deg); }
+        .east  { top: 12px; right: 12px; transform: rotate(-90deg); }
+        .south { top: 12px; left: 12px; transform: rotate(180deg); }
+        .west  { bottom: 12px; left: 12px; transform: rotate(90deg); }
+
+        .stick-border {
+            position: absolute;
+            background-color: #fff;
+            border: 2px solid #332e29;
+            border-radius: 5px;
+            z-index: 8;
+            pointer-events: none;
+        }
+        .stick-border.horizontal { width: 240px; height: 12px; }
+        .stick-border.vertical { width: 12px; height: 240px; }
+        .north-border { bottom: 30px; right: 130px; }
+        .south-border { top: 30px; left: 130px; }
+        .east-border { right: 30px; top: 130px; }
+        .west-border { left: 30px; top: 130px; }
+
+        .riichi-stick {
+            position: absolute;
+            background-color: #d4b996;
+            border-radius: 3px;
+            z-index: 9;
+            display: none;
+            transform-origin: center center;
+            left: 50%;
+            top: 50%;
+            margin: 0;
+            padding: 0;
+        }
+        .riichi-stick.horizontal { width: 238px; height: 10px; }
+        .riichi-stick.vertical { width: 10px; height: 238px; }
+
+        .north-stick {
+            transform: translate(-50%, -50%) rotate(180deg);
+        }
+        .west-stick {
+            transform: translate(-50%, -50%) rotate(180deg);
+        }
+        .east-stick {
+            transform: translate(-50%, -50%);
+        }
+        .south-stick {
+            transform: translate(-50%, -50%);
+        }
+
+        .riichi-stick::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            background-color: #b82f2f;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 29px;
+            height: 29px;
+            background: #332e29;
+            transform: translate(-50%, -50%);
+            z-index: 8;
+        }
+
+        .field-wind {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 42px;
+            font-weight: bold;
+            color: #332e29;
+            cursor: pointer;
+            z-index: 99;
+            border: 3px solid #332e29;
+            padding: 7px 17px;
+            border-radius: 12px;
+            background-color: #fff;
+            rotate: 0deg !important;
+            transform-origin: center center;
+        }
+
+        .point-btn {
+            position: absolute;
+            font-size: 27px;
+            font-weight: bold;
+            color: #332e29;
+            background-color: #fff;
+            border: 3px solid #332e29;
+            padding: 8px 17px;
+            border-radius: 8px;
+            z-index: 90;
+            transform-origin: center center;
+            white-space: nowrap;
+            width: 150px;
+            height: 58px;
+            line-height: 58px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .point-btn:hover {
+            background-color: #332e29;
+            color: #fff;
+        }
+        .point-north { top: -95px; left: 50%; transform: translate(-50%, 0) rotate(180deg) !important; }
+        .point-east { top: 50%; right: -160px; transform: translate(0, -50%) rotate(-90deg) !important; }
+        .point-south { bottom: -95px; left: 50%; transform: translate(-50%, 0) rotate(0deg) !important; }
+        .point-west { top: 50%; left: -160px; transform: translate(0, -50%) rotate(90deg) !important; }
+
+        .control-btns {
+            position: absolute;
+            top: 620px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 17px;
+            rotate: 0deg !important;
+            transform-origin: center center;
+        }
+        .control-btn {
+            padding: 15px 33px;
+            font-size: 18px;
+            background: #332e29;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            writing-mode: horizontal-tb;
+            white-space: nowrap;
+            text-align: center;
+            rotate: 0deg !important;
+        }
+        .control-btn:hover {
+            background: #5a5249;
+        }
+
+        .modal-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+
+        .modal-content {
+            background: #f5f2eb;
+            border: 5px solid #332e29;
+            border-radius: 12px;
+            padding: 30px;
+            width: 400px;
+            box-sizing: border-box;
+        }
+
+        .modal-form .form-item {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .modal-form label {
+            font-size: 18px;
+            color: #332e29;
+            font-weight: bold;
+        }
+
+        .modal-form input, .modal-form select {
+            padding: 10px;
+            border: 3px solid #332e29;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #332e29;
+            background: #fff;
+        }
+
+        .modal-form .radio-group {
+            display: flex;
+            gap: 20px;
+            flex-direction: row;
+            align-items: center;
+        }
+
+        .modal-form .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .modal-form .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .modal-form .form-btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            background: #332e29;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .modal-form .form-btn:hover {
+            background: #5a5249;
+        }
+
+        #shooter-select-wrap {
+            display: none;
+        }
+
+        /* 立直点棒数统计 - 移动到左上角 */
+        .riichi-stick-count {
+            position: absolute;
+            top: -140px;      /* 向上移动一些，避免与风盘重叠 */
+            left: -130px;          /* 靠左对齐 */
+            font-size: 24px;
+            font-weight: bold;
+            color: #332e29;
+            background-color: #fff;
+            border: 4px solid #332e29;
+            padding: 12px 24px;
+            border-radius: 12px;
+            z-index: 100;
+            text-align: center;
+            min-width: 160px;
+            transform: translateX(0) !important; /* 移除居中变换 */
+        }
+        
+        .riichi-stick-count .label {
+            font-size: 18px;
+            margin-bottom: 6px;
+            color: #5a5249;
+        }
+        
+        .riichi-stick-count .count {
+            font-size: 36px;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="compass-container">
+        <!-- 立直点棒数统计 -->
+        <div class="riichi-stick-count">
+            <div class="label">立直点棒数</div>
+            <div class="count" id="riichi-count">0</div>
+        </div>
+        
+        <div class="field-wind" onclick="toggleFieldWind()">东</div>
+        <div class="point-btn point-north" data-player="north" onclick="openPointModal('north')">25000</div>
+        <div class="point-btn point-east" data-player="east" onclick="openPointModal('east')">25000</div>
+        <div class="point-btn point-south" data-player="south" onclick="openPointModal('south')">25000</div>
+        <div class="point-btn point-west" data-player="west" onclick="openPointModal('west')">25000</div>
+        
+        <div id="windCompass">
+            <div class="wind north" data-direction="north" onclick="toggleRiichi('north')">北</div>
+            <div class="wind east" data-direction="east" onclick="toggleRiichi('east')">东</div>
+            <div class="wind south" data-direction="south" onclick="toggleRiichi('south')">南</div>
+            <div class="wind west" data-direction="west" onclick="toggleRiichi('west')">西</div>
+            <div class="stick-border horizontal north-border">
+                <div class="riichi-stick horizontal north-stick"></div>
+            </div>
+            <div class="stick-border vertical east-border">
+                <div class="riichi-stick vertical east-stick"></div>
+            </div>
+            <div class="stick-border horizontal south-border">
+                <div class="riichi-stick horizontal south-stick"></div>
+            </div>
+            <div class="stick-border vertical west-border">
+                <div class="riichi-stick vertical west-stick"></div>
+            </div>
+            <div class="center"></div>
+        </div>
+        <div class="control-btns">
+            <button class="control-btn" onclick="rotateWind()">逆时针旋转90度</button>
+            <button class="control-btn" onclick="resetWind()">重置风盘</button>
+            <button class="control-btn" onclick="abortGame()">流局</button>
+        </div>
+    </div>
+
+    <div class="modal-mask" id="point-modal">
+        <div class="modal-content">
+            <h2 style="text-align: center; color: #332e29; margin-top: 0;">点数结算</h2>
+            <form class="modal-form" id="point-form">
+                <input type="hidden" id="current-player" value="">
+                <div class="form-item">
+                    <label>结算类型</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" name="settle-type" id="ron" value="ron" onchange="toggleShooterSelect()">
+                            <label for="ron">荣和</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" name="settle-type" id="tsumo" value="tsumo" onchange="toggleShooterSelect()">
+                            <label for="tsumo">自摸</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-item">
+                    <label for="point-input">结算点数</label>
+                    <input type="number" id="point-input" min="1" placeholder="请输入正整数点数">
+                </div>
+                <div class="form-item" id="shooter-select-wrap">
+                    <label for="shooter-select">点炮家</label>
+                    <select id="shooter-select">
+                        <option value="">请选择点炮的一家</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="form-btn" onclick="closePointModal()">取消</button>
+                    <button type="button" class="form-btn" onclick="submitPointSettle()">确认结算</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentAngle = 0;
+        const compass = document.getElementById('windCompass');
+        const fieldWindEl = document.querySelector('.field-wind');
+        let fieldWind = '东';
+        const pointModal = document.getElementById('point-modal');
+        const riichiCountEl = document.getElementById('riichi-count');
+
+        // 全局玩家点数配置（初始25000）
+        let playerPoints = {
+            north: 25000,
+            east: 25000,
+            south: 25000,
+            west: 25000
+        };
+
+        // 玩家当前风位映射（初始状态：玩家->风位）
+        let playerWindMap = {
+            north: 'south',  // 北玩家在南风位（因为南风在上方）
+            east: 'east',    // 东玩家在东风位（庄家）
+            south: 'north',  // 南玩家在北风位（因为北风在下方）
+            west: 'west'     // 西玩家在西风位
+        };
+
+        // 新增：记录每个玩家的立直状态
+        let riichiStatus = {
+            north: false,
+            east: false,
+            south: false,
+            west: false
+        };
+
+        // 新增：立直点棒数计数器
+        let riichiStickCount = 0;
+
+        function updateRiichiCountDisplay() {
+            riichiCountEl.textContent = riichiStickCount;
+        }
+
+        function getPlayerByWind(wind) {
+            for (const [player, playerWind] of Object.entries(playerWindMap)) {
+                if (playerWind === wind) return player;
+            }
+            return null;
+        }
+
+        function getWindByPlayer(player) {
+            return playerWindMap[player];
+        }
+
+        function getDealerPlayer() {
+            return getPlayerByWind('east');
+        }
+
+        function getWindChineseName(wind) {
+            const windNames = {
+                north: '北',
+                east: '东',
+                south: '南',
+                west: '西'
+            };
+            return windNames[wind] || wind;
+        }
+
+        function updateShooterOptions() {
+            const shooterSelect = document.getElementById('shooter-select');
+            const dealerPlayer = getDealerPlayer();
+            
+            shooterSelect.innerHTML = '<option value="">请选择点炮的一家</option>';
+            
+            const players = ['north', 'east', 'south', 'west'];
+            players.forEach(player => {
+                const wind = getWindByPlayer(player);
+                const windName = getWindChineseName(wind);
+                const isDealer = player === dealerPlayer;
+                
+                const option = document.createElement('option');
+                option.value = player;
+                option.textContent = `${windName}风${isDealer ? '（庄家）' : ''}`;
+                shooterSelect.appendChild(option);
+            });
+        }
+
+        function toggleRiichi(wind) {
+            const player = getPlayerByWind(wind);
+            if (!player) return;
+            
+            const stick = document.querySelector(`.${wind}-stick`);
+            const windText = document.querySelector(`.wind[data-direction="${wind}"]`);
+            
+            if (stick) {
+                if (stick.style.display === 'block') {
+                    // 取消立直：归还1000点，立直点棒数减一
+                    stick.style.display = 'none';
+                    windText.style.color = '#c62828';
+                    playerPoints[player] += 1000;
+                    riichiStatus[player] = false;
+                    riichiStickCount--;
+                    updateRiichiCountDisplay();
+                    renderPointButtons();
+                } else {
+                    // 宣布立直：扣除1000点，立直点棒数加一
+                    if (playerPoints[player] >= 1000) {
+                        stick.style.display = 'block';
+                        windText.style.color = '#a52a2a';
+                        playerPoints[player] -= 1000;
+                        riichiStatus[player] = true;
+                        riichiStickCount++;
+                        updateRiichiCountDisplay();
+                        renderPointButtons();
+                    } else {
+                        alert('点数不足1000点，无法立直！');
+                    }
+                }
+            }
+        }
+
+        function clearAllRiichi() {
+            const sticks = document.querySelectorAll('.riichi-stick');
+            const windTexts = document.querySelectorAll('.wind');
+            
+            sticks.forEach(stick => {
+                stick.style.display = 'none';
+            });
+            
+            windTexts.forEach(text => {
+                text.style.color = '#c62828';
+            });
+            
+            // 重置所有玩家的立直状态（但不归还点数）
+            Object.keys(riichiStatus).forEach(player => {
+                riichiStatus[player] = false;
+            });
+        }
+
+        function abortGame() {
+            // 流局：清除所有立直状态，但不归还点数，立直点棒数不变
+            clearAllRiichi();
+            alert('流局！立直点棒数保留，所有立直状态已清除。');
+        }
+
+        function rotateWind() {
+            compass.style.transition = 'transform 1s ease';
+            currentAngle -= 90;
+            compass.style.transform = `rotate(${currentAngle}deg)`;
+
+            const oldMap = {...playerWindMap};
+            playerWindMap = {
+                north: oldMap.east,   // 北玩家的风位变成原来东玩家的风位
+                east: oldMap.south,   // 东玩家的风位变成原来南玩家的风位
+                south: oldMap.west,   // 南玩家的风位变成原来西玩家的风位
+                west: oldMap.north    // 西玩家的风位变成原来北玩家的风位
+            };
+            
+            updateShooterOptions();
+        }
+
+        function resetWind() {
+            compass.style.transition = 'none';
+            currentAngle = 0;
+            compass.style.transform = `rotate(${currentAngle}deg)`;
+            setTimeout(() => {
+                compass.style.transition = 'transform 1s ease';
+            }, 50);
+
+            // 恢复初始风位映射
+            playerWindMap = {
+                north: 'south',
+                east: 'east',
+                south: 'north',
+                west: 'west'
+            };
+            
+            // 重置点数
+            playerPoints = {
+                north: 25000,
+                east: 25000,
+                south: 25000,
+                west: 25000
+            };
+            
+            // 重置立直状态和点棒数
+            clearAllRiichi();
+            riichiStickCount = 0;
+            updateRiichiCountDisplay();
+            
+            updateShooterOptions();
+            renderPointButtons();
+            alert('已重置风盘，点数恢复为25000，立直状态和立直点棒数已清零。');
+        }
+
+        function toggleFieldWind() {
+            fieldWind = fieldWind === '东' ? '南' : '东';
+            fieldWindEl.textContent = fieldWind;
+        }
+
+        function toggleShooterSelect() {
+            const ronChecked = document.getElementById('ron').checked;
+            const shooterSelectWrap = document.getElementById('shooter-select-wrap');
+            shooterSelectWrap.style.display = ronChecked ? 'flex' : 'none';
+        }
+
+        function openPointModal(player) {
+            document.getElementById('current-player').value = player;
+            updateShooterOptions();
+            document.getElementById('point-form').reset();
+            document.getElementById('shooter-select-wrap').style.display = 'none';
+            pointModal.style.display = 'flex';
+        }
+
+        function closePointModal() {
+            pointModal.style.display = 'none';
+        }
+
+        function renderPointButtons() {
+            const pointButtons = document.querySelectorAll('.point-btn');
+            pointButtons.forEach(btn => {
+                const player = btn.dataset.player;
+                btn.textContent = playerPoints[player];
+            });
+        }
+
+        function submitPointSettle() {
+            const currentPlayer = document.getElementById('current-player').value;
+            const settleType = document.querySelector('input[name="settle-type"]:checked')?.value;
+            const pointInput = document.getElementById('point-input');
+            const totalPoint = parseInt(pointInput.value) || 0;
+            const shooterSelect = document.getElementById('shooter-select');
+            const shooter = shooterSelect.value;
+
+            if (!settleType) {
+                alert('请选择结算类型（荣和/自摸）');
+                return;
+            }
+            if (totalPoint <= 0 || isNaN(totalPoint)) {
+                alert('请输入有效的正整数点数');
+                return;
+            }
+            if (settleType === 'ron' && !shooter) {
+                alert('荣和请选择点炮家');
+                return;
+            }
+
+            // 获取当前庄家
+            const dealerPlayer = getDealerPlayer();
+            
+            // 和牌时：清除所有立直状态，和牌者获得所有立直点棒
+            if (riichiStickCount > 0) {
+                const riichiBonus = riichiStickCount * 1000;
+                playerPoints[currentPlayer] += riichiBonus;
+                
+                // 清除所有立直状态
+                clearAllRiichi();
+                riichiStickCount = 0;
+                updateRiichiCountDisplay();
+            }
+            
+            // 基本点数结算
+            if (settleType === 'ron') {
+                playerPoints[shooter] = Math.round(playerPoints[shooter] - totalPoint);
+                playerPoints[currentPlayer] = Math.round(playerPoints[currentPlayer] + totalPoint);
+            } else {
+                const isDealer = currentPlayer === dealerPlayer;
+                if (isDealer) {
+                    const eachDeduct = totalPoint / 3;
+                    Object.keys(playerPoints).forEach(player => {
+                        if (player !== currentPlayer) {
+                            playerPoints[player] = Math.round(playerPoints[player] - eachDeduct);
+                        }
+                    });
+                    playerPoints[currentPlayer] = Math.round(playerPoints[currentPlayer] + totalPoint);
+                } else {
+                    const dealerDeduct = totalPoint / 2;
+                    const normalDeduct = totalPoint / 4;
+                    
+                    playerPoints[dealerPlayer] = Math.round(playerPoints[dealerPlayer] - dealerDeduct);
+                    
+                    const otherPlayers = Object.keys(playerPoints).filter(p => p !== currentPlayer && p !== dealerPlayer);
+                    otherPlayers.forEach(p => {
+                        playerPoints[p] = Math.round(playerPoints[p] - normalDeduct);
+                    });
+                    
+                    playerPoints[currentPlayer] = Math.round(playerPoints[currentPlayer] + totalPoint);
+                }
+            }
+
+            closePointModal();
+            renderPointButtons();
+        }
+
+        pointModal.addEventListener('click', (e) => {
+            if (e.target === pointModal) {
+                closePointModal();
+            }
+        });
+
+        // 初始化：渲染点数按钮、更新点炮家选项、显示立直点棒数
+        renderPointButtons();
+        updateShooterOptions();
+        updateRiichiCountDisplay();
+    </script>
+</body>
+</html>
