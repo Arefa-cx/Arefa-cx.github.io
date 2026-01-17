@@ -168,13 +168,15 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 17px;
+            gap: 10px;
             rotate: 0deg !important;
             transform-origin: center center;
+            flex-wrap: nowrap;
+            justify-content: center;
         }
         .control-btn {
-            padding: 15px 33px;
-            font-size: 18px;
+            padding: 12px 18px;
+            font-size: 16px;
             background: #332e29;
             color: white;
             border: none;
@@ -188,6 +190,14 @@
         }
         .control-btn:hover {
             background: #5a5249;
+        }
+        
+        /* 重置本场数按钮特殊样式 */
+        .control-btn.reset-bonus {
+            background: #c62828;
+        }
+        .control-btn.reset-bonus:hover {
+            background: #b71c1c;
         }
 
         .modal-mask {
@@ -578,8 +588,9 @@
             <div class="center"></div>
         </div>
         <div class="control-btns">
-            <button class="control-btn" onclick="rotateWind()">逆时针旋转90度</button>
+            <button class="control-btn" onclick="rotateWind()">旋转90度</button>
             <button class="control-btn" onclick="resetWind()">重置风盘</button>
+            <button class="control-btn reset-bonus" onclick="resetBonus()">重置本场数</button>
             <button class="control-btn" onclick="openAbortModal()">流局</button>
         </div>
     </div>
@@ -604,8 +615,8 @@
                     </div>
                 </div>
                 <div class="form-item">
-                    <label for="point-input">基本点数</label>
-                    <input type="number" id="point-input" min="0" placeholder="请输入点数">
+                    <label for="point-input">结算点数</label>
+                    <input type="number" id="point-input" min="0" placeholder="请输入点数（可为0）">
                 </div>
                 <div class="form-item" id="shooter-select-wrap">
                     <label for="shooter-select">点炮家</label>
