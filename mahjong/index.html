@@ -276,73 +276,70 @@
         /* 立直点棒数统计 */
         .riichi-stick-count {
             position: absolute;
-            top: -210px;
-            left: -185px;
+            top: -130px;
+            left: -90px;
             font-size: 22px;
             font-weight: bold;
             color: #332e29;
             background-color: #fff;
-            border: 4px solid #332e29;
-            padding: 10px 20px;
-            border-radius: 12px;
+            border: 2px solid #332e29;
+            padding: 10px 18px;
+            border-radius: 8px;
             z-index: 100;
             text-align: center;
-            min-width: 140px;
+            min-width: 110px;
             transform: translateX(0) !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
         }
         
-        .riichi-stick-count .label {
-            font-size: 16px;
-            margin-bottom: 5px;
-            color: #5a5249;
-        }
-        
-        .riichi-stick-count .count {
-            font-size: 32px;
+        .riichi-stick-count .number {
             color: #c62828;
+            margin-right: 3px;
+        }
+        
+        .riichi-stick-count .text {
+            color: #332e29;
         }
         
         /* 本场数统计 */
         .bonus-stick-count {
             position: absolute;
-            top: -105px;
-            left: -185px;
+            top: -70px;
+            left: -90px;
             font-size: 22px;
             font-weight: bold;
             color: #332e29;
             background-color: #fff;
-            border: 3px solid #332e29;
-            padding: 10px 20px;
-            border-radius: 10px;
+            border: 2px solid #332e29;
+            padding: 10px 18px;
+            border-radius: 8px;
             z-index: 100;
             text-align: center;
-            min-width: 140px;
+            min-width: 110px;
             transform: translateX(0) !important;
             cursor: pointer;
             transition: all 0.2s ease;
             user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
         }
         
         .bonus-stick-count:hover {
             background-color: #f0f0f0;
         }
         
-        .bonus-stick-count .label {
-            font-size: 16px;
-            margin-bottom: 5px;
-            color: #5a5249;
+        .bonus-stick-count .number {
+            color: #c62828;
+            margin-right: 3px;
         }
         
-        .bonus-stick-count .count {
-            font-size: 32px;
-            color: #2e7d32;
-        }
-        
-        .bonus-stick-count .count::after {
-            content: "本场";
-            font-size: 18px;
-            margin-left: 5px;
-            color: #5a5249;
+        .bonus-stick-count .text {
+            color: #332e29;
         }
         
         /* 和牌提示弹窗 */
@@ -543,16 +540,16 @@
 </head>
 <body>
     <div class="compass-container">
-        <!-- 立直点棒数统计 -->
-        <div class="riichi-stick-count">
-            <div class="label">立直点棒数</div>
-            <div class="count" id="riichi-count">0</div>
+        <!-- 立直点棒数统计 - 缩小字体和边框 -->
+        <div class="riichi-stick-count" id="riichi-count-container">
+            <span class="number" id="riichi-count">0</span>
+            <span class="text">点棒数</span>
         </div>
         
-        <!-- 本场数统计 -->
+        <!-- 本场数统计 - 缩小字体和边框 -->
         <div class="bonus-stick-count" id="bonus-count-container">
-            <div class="label">本场数</div>
-            <div class="count" id="bonus-count">0</div>
+            <span class="number" id="bonus-count">0</span>
+            <span class="text">本场</span>
         </div>
         
         <div class="field-wind" onclick="toggleFieldWind()">东</div>
@@ -607,8 +604,8 @@
                     </div>
                 </div>
                 <div class="form-item">
-                    <label for="point-input">结算点数</label>
-                    <input type="number" id="point-input" min="0" placeholder="请输入点数（可为0）">
+                    <label for="point-input">基本点数</label>
+                    <input type="number" id="point-input" min="0" placeholder="请输入点数">
                 </div>
                 <div class="form-item" id="shooter-select-wrap">
                     <label for="shooter-select">点炮家</label>
@@ -713,6 +710,11 @@
         let longPressTimer = null;
         let isLongPress = false;
         const LONG_PRESS_DURATION = 1000; // 长按1秒重置
+        
+        // 辅助函数：向上取整到100的倍数
+        function ceilTo100(x) {
+            return Math.ceil(x / 100) * 100;
+        }
 
         function updateRiichiCountDisplay() {
             riichiCountEl.textContent = riichiStickCount;
@@ -951,7 +953,7 @@
         function closePointModal() {
             pointModal.style.display = 'none';
         }
-        
+    
         function openAbortModal() {
             // 重置所有复选框
             document.querySelectorAll('.player-select-checkbox').forEach(checkbox => {
@@ -1236,7 +1238,6 @@
             let riichiBonus = 0;
             if (riichiStickCount > 0) {
                 riichiBonus = riichiStickCount * 1000;
-                playerPoints[currentPlayer] += riichiBonus;
                 
                 // 清除所有立直状态
                 clearAllRiichi();
@@ -1246,6 +1247,7 @@
             
             // 基本点数结算
             if (settleType === 'ron') {
+                // 荣和结算
                 playerPoints[shooter] = Math.round(playerPoints[shooter] - totalPoint);
                 playerPoints[currentPlayer] = Math.round(playerPoints[currentPlayer] + totalPoint);
                 
@@ -1256,41 +1258,62 @@
                     playerPoints[shooter] = Math.round(playerPoints[shooter] - bonusPoints);
                     playerPoints[currentPlayer] = Math.round(playerPoints[currentPlayer] + bonusPoints);
                 }
+                
+                // 加上立直点棒
+                playerPoints[currentPlayer] = Math.round(playerPoints[currentPlayer] + riichiBonus);
             } else {
+                // 自摸结算
                 const isDealer = currentPlayer === dealerPlayer;
+                let totalReceived = 0;
+                
                 if (isDealer) {
-                    const eachDeduct = totalPoint / 3;
+                    // 庄家自摸：其他三家各支付基本点数/3，向上取整到100的倍数
+                    const eachBase = ceilTo100(totalPoint / 3);
+                    
                     Object.keys(playerPoints).forEach(player => {
                         if (player !== currentPlayer) {
-                            playerPoints[player] = Math.round(playerPoints[player] - eachDeduct);
+                            // 基本点数
+                            const basePayment = eachBase;
+                            
+                            // 本场点数：每家支付100 * 本场数
+                            const bonusPayment = bonusStickCount * 100;
+                            
+                            // 总支付
+                            const totalPayment = basePayment + bonusPayment;
+                            
+                            playerPoints[player] = Math.round(playerPoints[player] - totalPayment);
+                            totalReceived += totalPayment;
                         }
                     });
-                    playerPoints[currentPlayer] = Math.round(playerPoints[currentPlayer] + totalPoint);
                 } else {
-                    const dealerDeduct = totalPoint / 2;
-                    const normalDeduct = totalPoint / 4;
+                    // 子家自摸：庄家支付基本点数/2，其他两家各支付基本点数/4，都向上取整到100的倍数
+                    const dealerBase = ceilTo100(totalPoint / 2);
+                    const normalBase = ceilTo100(totalPoint / 4);
                     
-                    playerPoints[dealerPlayer] = Math.round(playerPoints[dealerPlayer] - dealerDeduct);
-                    
-                    const otherPlayers = Object.keys(playerPoints).filter(p => p !== currentPlayer && p !== dealerPlayer);
-                    otherPlayers.forEach(p => {
-                        playerPoints[p] = Math.round(playerPoints[p] - normalDeduct);
+                    Object.keys(playerPoints).forEach(player => {
+                        if (player !== currentPlayer) {
+                            // 基本点数
+                            let basePayment = 0;
+                            if (player === dealerPlayer) {
+                                basePayment = dealerBase;
+                            } else {
+                                basePayment = normalBase;
+                            }
+                            
+                            // 本场点数：每家支付100 * 本场数
+                            const bonusPayment = bonusStickCount * 100;
+                            
+                            // 总支付
+                            const totalPayment = basePayment + bonusPayment;
+                            
+                            playerPoints[player] = Math.round(playerPoints[player] - totalPayment);
+                            totalReceived += totalPayment;
+                        }
                     });
-                    
-                    playerPoints[currentPlayer] = Math.round(playerPoints[currentPlayer] + totalPoint);
                 }
                 
-                // 自摸本场点数：未和牌的三人各多支付100 * bonusStickCount点
-                let bonusPerPlayer = 0;
-                if (bonusStickCount > 0) {
-                    bonusPerPlayer = 100 * bonusStickCount;  // 改为乘以本场数
-                    Object.keys(playerPoints).forEach(player => {
-                        if (player !== currentPlayer) {
-                            playerPoints[player] = Math.round(playerPoints[player] - bonusPerPlayer);
-                        }
-                    });
-                    playerPoints[currentPlayer] = Math.round(playerPoints[currentPlayer] + (bonusPerPlayer * 3));
-                }
+                // 自摸者获得点数 = 各家支付点数总和 + 立直点棒
+                playerPoints[currentPlayer] = Math.round(playerPoints[currentPlayer] + totalReceived + riichiBonus);
             }
             
             // 计算点数变化
