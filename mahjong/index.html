@@ -273,33 +273,271 @@
             display: none;
         }
 
-        /* 立直点棒数统计 - 移动到左上角 */
+        /* 立直点棒数统计 */
         .riichi-stick-count {
             position: absolute;
-            top: -140px;      /* 向上移动一些，避免与风盘重叠 */
-            left: -130px;          /* 靠左对齐 */
-            font-size: 24px;
+            top: -210px;
+            left: -185px;
+            font-size: 22px;
             font-weight: bold;
             color: #332e29;
             background-color: #fff;
             border: 4px solid #332e29;
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: 12px;
             z-index: 100;
             text-align: center;
-            min-width: 160px;
-            transform: translateX(0) !important; /* 移除居中变换 */
+            min-width: 140px;
+            transform: translateX(0) !important;
         }
         
         .riichi-stick-count .label {
-            font-size: 18px;
-            margin-bottom: 6px;
+            font-size: 16px;
+            margin-bottom: 5px;
             color: #5a5249;
         }
         
         .riichi-stick-count .count {
-            font-size: 36px;
+            font-size: 32px;
             color: #c62828;
+        }
+        
+        /* 本场数统计 */
+        .bonus-stick-count {
+            position: absolute;
+            top: -105px;
+            left: -185px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #332e29;
+            background-color: #fff;
+            border: 3px solid #332e29;
+            padding: 10px 20px;
+            border-radius: 10px;
+            z-index: 100;
+            text-align: center;
+            min-width: 140px;
+            transform: translateX(0) !important;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        
+        .bonus-stick-count:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .bonus-stick-count .label {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: #5a5249;
+        }
+        
+        .bonus-stick-count .count {
+            font-size: 32px;
+            color: #2e7d32;
+        }
+        
+        .bonus-stick-count .count::after {
+            content: "本场";
+            font-size: 18px;
+            margin-left: 5px;
+            color: #5a5249;
+        }
+        
+        /* 和牌提示弹窗 */
+        .settle-details-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .settle-details-content {
+            background: #f5f2eb;
+            border: 5px solid #332e29;
+            border-radius: 12px;
+            padding: 30px;
+            width: 450px;
+            max-width: 90vw;
+            box-sizing: border-box;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .settle-details-content h2 {
+            text-align: center;
+            color: #332e29;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        
+        .player-point-change {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .player-point-change:last-child {
+            border-bottom: none;
+        }
+        
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .player-wind {
+            font-size: 20px;
+            font-weight: bold;
+            color: #332e29;
+            min-width: 60px;
+        }
+        
+        .player-name {
+            font-size: 18px;
+            color: #5a5249;
+        }
+        
+        .point-change {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .point-change.positive {
+            color: #c62828;
+        }
+        
+        .point-change.negative {
+            color: #2e7d32;
+        }
+        
+        .point-change.neutral {
+            color: #666;
+        }
+        
+        .summary {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 8px;
+            border: 2px solid #332e29;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .summary-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .close-details-btn {
+            display: block;
+            margin: 25px auto 0;
+            padding: 12px 30px;
+            font-size: 16px;
+            background: #332e29;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .close-details-btn:hover {
+            background: #5a5249;
+        }
+        
+        /* 流局结算弹窗 */
+        .abort-settle-content {
+            background: #f5f2eb;
+            border: 5px solid #332e29;
+            border-radius: 12px;
+            padding: 30px;
+            width: 450px;
+            max-width: 90vw;
+            box-sizing: border-box;
+        }
+        
+        .player-select-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .player-select-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 80px;
+        }
+        
+        .player-select-checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+        
+        .player-select-label {
+            font-size: 18px;
+            font-weight: bold;
+            color: #332e29;
+            text-align: center;
+        }
+        
+        .abort-btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .abort-btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            background: #332e29;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .abort-btn:hover {
+            background: #5a5249;
+        }
+        
+        .abort-btn.tenpai-btn {
+            background: #2e7d32;
+        }
+        
+        .abort-btn.tenpai-btn:hover {
+            background: #1b5e20;
+        }
+        
+        .abort-btn.nagashi-btn {
+            background: #c62828;
+        }
+        
+        .abort-btn.nagashi-btn:hover {
+            background: #b71c1c;
         }
     </style>
 </head>
@@ -309,6 +547,12 @@
         <div class="riichi-stick-count">
             <div class="label">立直点棒数</div>
             <div class="count" id="riichi-count">0</div>
+        </div>
+        
+        <!-- 本场数统计 -->
+        <div class="bonus-stick-count" id="bonus-count-container">
+            <div class="label">本场数</div>
+            <div class="count" id="bonus-count">0</div>
         </div>
         
         <div class="field-wind" onclick="toggleFieldWind()">东</div>
@@ -339,10 +583,11 @@
         <div class="control-btns">
             <button class="control-btn" onclick="rotateWind()">逆时针旋转90度</button>
             <button class="control-btn" onclick="resetWind()">重置风盘</button>
-            <button class="control-btn" onclick="abortGame()">流局</button>
+            <button class="control-btn" onclick="openAbortModal()">流局</button>
         </div>
     </div>
 
+    <!-- 点数结算弹窗 -->
     <div class="modal-mask" id="point-modal">
         <div class="modal-content">
             <h2 style="text-align: center; color: #332e29; margin-top: 0;">点数结算</h2>
@@ -363,7 +608,7 @@
                 </div>
                 <div class="form-item">
                     <label for="point-input">结算点数</label>
-                    <input type="number" id="point-input" min="1" placeholder="请输入正整数点数">
+                    <input type="number" id="point-input" min="0" placeholder="请输入点数（可为0）">
                 </div>
                 <div class="form-item" id="shooter-select-wrap">
                     <label for="shooter-select">点炮家</label>
@@ -379,6 +624,48 @@
         </div>
     </div>
 
+    <!-- 和牌详细点数变化提示 -->
+    <div class="settle-details-mask" id="settle-details-modal">
+        <div class="settle-details-content">
+            <h2 id="settle-details-title">和牌点数结算详情</h2>
+            <div id="settle-details"></div>
+            <button class="close-details-btn" onclick="closeSettleDetails()">确认</button>
+        </div>
+    </div>
+
+    <!-- 流局结算弹窗 -->
+    <div class="modal-mask" id="abort-modal">
+        <div class="abort-settle-content">
+            <h2 style="text-align: center; color: #332e29; margin-top: 0;">流局结算</h2>
+            <p style="text-align: center; color: #5a5249; margin-bottom: 25px;">请选择听牌或流局满贯的玩家</p>
+            
+            <div class="player-select-group">
+                <div class="player-select-item">
+                    <input type="checkbox" class="player-select-checkbox" id="abort-north" data-player="north">
+                    <label class="player-select-label" for="abort-north">北</label>
+                </div>
+                <div class="player-select-item">
+                    <input type="checkbox" class="player-select-checkbox" id="abort-east" data-player="east">
+                    <label class="player-select-label" for="abort-east">东</label>
+                </div>
+                <div class="player-select-item">
+                    <input type="checkbox" class="player-select-checkbox" id="abort-south" data-player="south">
+                    <label class="player-select-label" for="abort-south">南</label>
+                </div>
+                <div class="player-select-item">
+                    <input type="checkbox" class="player-select-checkbox" id="abort-west" data-player="west">
+                    <label class="player-select-label" for="abort-west">西</label>
+                </div>
+            </div>
+            
+            <div class="abort-btn-group">
+                <button class="abort-btn tenpai-btn" onclick="settleTenpai()">听牌结算</button>
+                <button class="abort-btn nagashi-btn" onclick="settleNagashiMangan()">流局满贯结算</button>
+                <button class="abort-btn" onclick="closeAbortModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentAngle = 0;
         const compass = document.getElementById('windCompass');
@@ -386,6 +673,11 @@
         let fieldWind = '东';
         const pointModal = document.getElementById('point-modal');
         const riichiCountEl = document.getElementById('riichi-count');
+        const bonusCountEl = document.getElementById('bonus-count');
+        const settleDetailsModal = document.getElementById('settle-details-modal');
+        const settleDetailsEl = document.getElementById('settle-details');
+        const settleDetailsTitleEl = document.getElementById('settle-details-title');
+        const abortModal = document.getElementById('abort-modal');
 
         // 全局玩家点数配置（初始25000）
         let playerPoints = {
@@ -413,9 +705,21 @@
 
         // 新增：立直点棒数计数器
         let riichiStickCount = 0;
+        
+        // 新增：本场数计数器
+        let bonusStickCount = 0;
+        
+        // 新增：长按相关变量
+        let longPressTimer = null;
+        let isLongPress = false;
+        const LONG_PRESS_DURATION = 1000; // 长按1秒重置
 
         function updateRiichiCountDisplay() {
             riichiCountEl.textContent = riichiStickCount;
+        }
+        
+        function updateBonusCountDisplay() {
+            bonusCountEl.textContent = bonusStickCount;
         }
 
         function getPlayerByWind(wind) {
@@ -441,6 +745,67 @@
                 west: '西'
             };
             return windNames[wind] || wind;
+        }
+        
+        // 初始化本场数按钮事件
+        function setupBonusButton() {
+            const bonusContainer = document.getElementById('bonus-count-container');
+            
+            // 单击增加本场数
+            bonusContainer.addEventListener('click', function(e) {
+                if (!isLongPress) {
+                    incrementBonus();
+                }
+            });
+            
+            // 鼠标按下开始长按计时
+            bonusContainer.addEventListener('mousedown', function() {
+                isLongPress = false;
+                longPressTimer = setTimeout(function() {
+                    isLongPress = true;
+                    resetBonus();
+                }, LONG_PRESS_DURATION);
+            });
+            
+            // 鼠标松开清除计时器
+            bonusContainer.addEventListener('mouseup', function() {
+                clearTimeout(longPressTimer);
+            });
+            
+            bonusContainer.addEventListener('mouseleave', function() {
+                clearTimeout(longPressTimer);
+                isLongPress = false;
+            });
+            
+            // 触摸设备支持
+            bonusContainer.addEventListener('touchstart', function() {
+                isLongPress = false;
+                longPressTimer = setTimeout(function() {
+                    isLongPress = true;
+                    resetBonus();
+                }, LONG_PRESS_DURATION);
+            });
+            
+            bonusContainer.addEventListener('touchend', function() {
+                clearTimeout(longPressTimer);
+            });
+            
+            bonusContainer.addEventListener('touchcancel', function() {
+                clearTimeout(longPressTimer);
+                isLongPress = false;
+            });
+        }
+        
+        // 增加本场数
+        function incrementBonus() {
+            bonusStickCount++;
+            updateBonusCountDisplay();
+        }
+        
+        // 重置本场数
+        function resetBonus() {
+            bonusStickCount = 0;
+            updateBonusCountDisplay();
         }
 
         function updateShooterOptions() {
@@ -480,18 +845,14 @@
                     updateRiichiCountDisplay();
                     renderPointButtons();
                 } else {
-                    // 宣布立直：扣除1000点，立直点棒数加一
-                    if (playerPoints[player] >= 1000) {
-                        stick.style.display = 'block';
-                        windText.style.color = '#a52a2a';
-                        playerPoints[player] -= 1000;
-                        riichiStatus[player] = true;
-                        riichiStickCount++;
-                        updateRiichiCountDisplay();
-                        renderPointButtons();
-                    } else {
-                        alert('点数不足1000点，无法立直！');
-                    }
+                    // 宣布立直：扣除1000点，立直点棒数加一（允许点数为负）
+                    stick.style.display = 'block';
+                    windText.style.color = '#a52a2a';
+                    playerPoints[player] -= 1000;
+                    riichiStatus[player] = true;
+                    riichiStickCount++;
+                    updateRiichiCountDisplay();
+                    renderPointButtons();
                 }
             }
         }
@@ -512,12 +873,6 @@
             Object.keys(riichiStatus).forEach(player => {
                 riichiStatus[player] = false;
             });
-        }
-
-        function abortGame() {
-            // 流局：清除所有立直状态，但不归还点数，立直点棒数不变
-            clearAllRiichi();
-            alert('流局！立直点棒数保留，所有立直状态已清除。');
         }
 
         function rotateWind() {
@@ -565,9 +920,13 @@
             riichiStickCount = 0;
             updateRiichiCountDisplay();
             
+            // 重置本场数
+            bonusStickCount = 0;
+            updateBonusCountDisplay();
+            
             updateShooterOptions();
             renderPointButtons();
-            alert('已重置风盘，点数恢复为25000，立直状态和立直点棒数已清零。');
+            alert('已重置风盘，点数恢复为25000，立直状态、立直点棒数和本场数已清零。');
         }
 
         function toggleFieldWind() {
@@ -592,6 +951,36 @@
         function closePointModal() {
             pointModal.style.display = 'none';
         }
+        
+        function openAbortModal() {
+            // 重置所有复选框
+            document.querySelectorAll('.player-select-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // 根据当前风位更新标签
+            const players = ['north', 'east', 'south', 'west'];
+            players.forEach(player => {
+                const wind = getWindByPlayer(player);
+                const windName = getWindChineseName(wind);
+                const checkbox = document.getElementById(`abort-${player}`);
+                const label = checkbox.nextElementSibling;
+                
+                if (label && label.classList.contains('player-select-label')) {
+                    label.textContent = windName;
+                }
+            });
+            
+            abortModal.style.display = 'flex';
+        }
+        
+        function closeAbortModal() {
+            abortModal.style.display = 'none';
+        }
+        
+        function closeSettleDetails() {
+            settleDetailsModal.style.display = 'none';
+        }
 
         function renderPointButtons() {
             const pointButtons = document.querySelectorAll('.point-btn');
@@ -599,6 +988,221 @@
                 const player = btn.dataset.player;
                 btn.textContent = playerPoints[player];
             });
+        }
+        
+        // 显示点数变化详情
+        function showSettleDetails(title, details) {
+            settleDetailsTitleEl.textContent = title;
+            settleDetailsEl.innerHTML = details;
+            settleDetailsModal.style.display = 'flex';
+        }
+        
+        // 生成点数变化HTML（通用）
+        function generateSettleDetails(title, pointChanges, summaryItems = []) {
+            let details = '';
+            const dealerPlayer = getDealerPlayer();
+            
+            // 添加玩家点数变化
+            const players = ['north', 'east', 'south', 'west'];
+            players.forEach(player => {
+                const wind = getWindByPlayer(player);
+                const windName = getWindChineseName(wind);
+                const isDealer = player === dealerPlayer;
+                
+                let playerLabel = `${windName}风`;
+                if (isDealer) playerLabel += '（庄家）';
+                
+                const change = pointChanges[player];
+                const changeClass = change > 0 ? 'positive' : (change < 0 ? 'negative' : 'neutral');
+                const changeSign = change > 0 ? '+' : '';
+                
+                details += `
+                    <div class="player-point-change">
+                        <div class="player-info">
+                            <div class="player-wind">${windName}</div>
+                            <div class="player-name">${playerLabel}</div>
+                        </div>
+                        <div class="point-change ${changeClass}">${changeSign}${change}点</div>
+                    </div>
+                `;
+            });
+            
+            // 添加总结信息
+            if (summaryItems.length > 0) {
+                let summary = '<div class="summary">';
+                summaryItems.forEach(item => {
+                    summary += `<div class="summary-item"><span>${item.label}:</span><span>${item.value}</span></div>`;
+                });
+                summary += '</div>';
+                details += summary;
+            }
+            
+            return details;
+        }
+        
+        // 听牌结算
+        function settleTenpai() {
+            // 获取选中的听牌玩家
+            const selectedCheckboxes = document.querySelectorAll('.player-select-checkbox:checked');
+            const tenpaiPlayers = Array.from(selectedCheckboxes).map(cb => cb.dataset.player);
+            
+            // 清空所有玩家的立直状态（但不归还点数，立直点棒数不变）
+            clearAllRiichi();
+            
+            // 记录结算前的点数
+            const originalPoints = {...playerPoints};
+            
+            // 听牌结算规则
+            const tenpaiCount = tenpaiPlayers.length;
+            let pointChanges = { north: 0, east: 0, south: 0, west: 0 };
+            
+            if (tenpaiCount === 1) {
+                // 1人听牌：其余三家各给听牌者1000
+                const winner = tenpaiPlayers[0];
+                playerPoints[winner] += 3000;
+                pointChanges[winner] += 3000;
+                
+                const allPlayers = ['north', 'east', 'south', 'west'];
+                allPlayers.forEach(player => {
+                    if (player !== winner) {
+                        playerPoints[player] -= 1000;
+                        pointChanges[player] -= 1000;
+                    }
+                });
+            } else if (tenpaiCount === 2) {
+                // 2人听牌：听牌者各获得1500，未听牌者失去1500
+                const nonTenpaiPlayers = ['north', 'east', 'south', 'west'].filter(p => !tenpaiPlayers.includes(p));
+                
+                tenpaiPlayers.forEach(player => {
+                    playerPoints[player] += 1500;
+                    pointChanges[player] += 1500;
+                });
+                
+                nonTenpaiPlayers.forEach(player => {
+                    playerPoints[player] -= 1500;
+                    pointChanges[player] -= 1500;
+                });
+            } else if (tenpaiCount === 3) {
+                // 3人听牌：听牌者各获得1000，未听牌者失去3000
+                const nonTenpaiPlayers = ['north', 'east', 'south', 'west'].filter(p => !tenpaiPlayers.includes(p));
+                
+                tenpaiPlayers.forEach(player => {
+                    playerPoints[player] += 1000;
+                    pointChanges[player] += 1000;
+                });
+                
+                nonTenpaiPlayers.forEach(player => {
+                    playerPoints[player] -= 3000;
+                    pointChanges[player] -= 3000;
+                });
+            }
+            // 0人或4人听牌：无点数变化
+            
+            // 生成听牌玩家信息
+            const tenpaiPlayerNames = tenpaiPlayers.map(p => {
+                const wind = getWindByPlayer(p);
+                const windName = getWindChineseName(wind);
+                return windName + '风';
+            }).join('、') || '无';
+            
+            // 生成总结信息
+            const summaryItems = [
+                { label: '听牌玩家', value: tenpaiPlayerNames },
+                { label: '听牌人数', value: `${tenpaiCount}人` }
+            ];
+            
+            // 关闭流局弹窗
+            closeAbortModal();
+            
+            // 更新点数显示
+            renderPointButtons();
+            
+            // 显示详细点数变化
+            const settleDetailsHTML = generateSettleDetails('流局听牌结算', pointChanges, summaryItems);
+            showSettleDetails('流局听牌结算详情', settleDetailsHTML);
+        }
+        
+        // 流局满贯结算
+        function settleNagashiMangan() {
+            // 获取选中的流局满贯玩家
+            const selectedCheckboxes = document.querySelectorAll('.player-select-checkbox:checked');
+            const nagashiPlayers = Array.from(selectedCheckboxes).map(cb => cb.dataset.player);
+            
+            if (nagashiPlayers.length === 0) {
+                alert('请选择达成流局满贯的玩家！');
+                return;
+            }
+            
+            // 清空所有玩家的立直状态（但不归还点数，立直点棒数不变）
+            clearAllRiichi();
+            
+            // 记录结算前的点数
+            const originalPoints = {...playerPoints};
+            
+            // 流局满贯结算（不受立直点棒和本场数影响）
+            const dealerPlayer = getDealerPlayer();
+            let pointChanges = { north: 0, east: 0, south: 0, west: 0 };
+            
+            nagashiPlayers.forEach(nagashiPlayer => {
+                const isDealer = nagashiPlayer === dealerPlayer;
+                
+                if (isDealer) {
+                    // 庄家流局满贯：12000点（自摸计算）
+                    playerPoints[nagashiPlayer] += 12000;
+                    pointChanges[nagashiPlayer] += 12000;
+                    
+                    // 其他三家各支付4000点
+                    const allPlayers = ['north', 'east', 'south', 'west'];
+                    allPlayers.forEach(player => {
+                        if (player !== nagashiPlayer) {
+                            playerPoints[player] -= 4000;
+                            pointChanges[player] -= 4000;
+                        }
+                    });
+                } else {
+                    // 子家流局满贯：8000点（自摸计算）
+                    playerPoints[nagashiPlayer] += 8000;
+                    pointChanges[nagashiPlayer] += 8000;
+                    
+                    // 庄家支付4000点，其余两家各支付2000点
+                    const allPlayers = ['north', 'east', 'south', 'west'];
+                    allPlayers.forEach(player => {
+                        if (player !== nagashiPlayer) {
+                            if (player === dealerPlayer) {
+                                playerPoints[player] -= 4000;
+                                pointChanges[player] -= 4000;
+                            } else {
+                                playerPoints[player] -= 2000;
+                                pointChanges[player] -= 2000;
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // 生成流局满贯玩家信息
+            const nagashiPlayerNames = nagashiPlayers.map(p => {
+                const wind = getWindByPlayer(p);
+                const windName = getWindChineseName(wind);
+                const isDealer = p === dealerPlayer;
+                return windName + '风' + (isDealer ? '（庄家）' : '');
+            }).join('、');
+            
+            // 生成总结信息
+            const summaryItems = [
+                { label: '流局满贯玩家', value: nagashiPlayerNames },
+                { label: '结算类型', value: nagashiPlayers.length > 1 ? '多人流局满贯' : '单人流局满贯' }
+            ];
+            
+            // 关闭流局弹窗
+            closeAbortModal();
+            
+            // 更新点数显示
+            renderPointButtons();
+            
+            // 显示详细点数变化
+            const settleDetailsHTML = generateSettleDetails('流局满贯结算', pointChanges, summaryItems);
+            showSettleDetails('流局满贯结算详情', settleDetailsHTML);
         }
 
         function submitPointSettle() {
@@ -613,8 +1217,8 @@
                 alert('请选择结算类型（荣和/自摸）');
                 return;
             }
-            if (totalPoint <= 0 || isNaN(totalPoint)) {
-                alert('请输入有效的正整数点数');
+            if (isNaN(totalPoint)) {
+                alert('请输入有效的点数');
                 return;
             }
             if (settleType === 'ron' && !shooter) {
@@ -625,9 +1229,13 @@
             // 获取当前庄家
             const dealerPlayer = getDealerPlayer();
             
+            // 记录结算前的点数
+            const originalPoints = {...playerPoints};
+            
             // 和牌时：清除所有立直状态，和牌者获得所有立直点棒
+            let riichiBonus = 0;
             if (riichiStickCount > 0) {
-                const riichiBonus = riichiStickCount * 1000;
+                riichiBonus = riichiStickCount * 1000;
                 playerPoints[currentPlayer] += riichiBonus;
                 
                 // 清除所有立直状态
@@ -640,6 +1248,14 @@
             if (settleType === 'ron') {
                 playerPoints[shooter] = Math.round(playerPoints[shooter] - totalPoint);
                 playerPoints[currentPlayer] = Math.round(playerPoints[currentPlayer] + totalPoint);
+                
+                // 荣和本场点数：点炮者额外支付n*300点
+                let bonusPoints = 0;
+                if (bonusStickCount > 0) {
+                    bonusPoints = bonusStickCount * 300;
+                    playerPoints[shooter] = Math.round(playerPoints[shooter] - bonusPoints);
+                    playerPoints[currentPlayer] = Math.round(playerPoints[currentPlayer] + bonusPoints);
+                }
             } else {
                 const isDealer = currentPlayer === dealerPlayer;
                 if (isDealer) {
@@ -663,10 +1279,90 @@
                     
                     playerPoints[currentPlayer] = Math.round(playerPoints[currentPlayer] + totalPoint);
                 }
+                
+                // 自摸本场点数：未和牌的三人各多支付100 * bonusStickCount点
+                let bonusPerPlayer = 0;
+                if (bonusStickCount > 0) {
+                    bonusPerPlayer = 100 * bonusStickCount;  // 改为乘以本场数
+                    Object.keys(playerPoints).forEach(player => {
+                        if (player !== currentPlayer) {
+                            playerPoints[player] = Math.round(playerPoints[player] - bonusPerPlayer);
+                        }
+                    });
+                    playerPoints[currentPlayer] = Math.round(playerPoints[currentPlayer] + (bonusPerPlayer * 3));
+                }
+            }
+            
+            // 计算点数变化
+            const pointChanges = {};
+            Object.keys(playerPoints).forEach(player => {
+                pointChanges[player] = playerPoints[player] - originalPoints[player];
+            });
+            
+            // 生成和牌详细点数变化提示
+            const dealerPlayerObj = getDealerPlayer();
+            const players = ['north', 'east', 'south', 'west'];
+            
+            let details = '';
+            players.forEach(player => {
+                const wind = getWindByPlayer(player);
+                const windName = getWindChineseName(wind);
+                const isDealer = player === dealerPlayerObj;
+                const isWinner = player === currentPlayer;
+                const isShooter = player === shooter;
+                
+                let playerLabel = `${windName}风`;
+                if (isDealer) playerLabel += '（庄家）';
+                if (isWinner) playerLabel += '（和牌）';
+                if (settleType === 'ron' && isShooter) playerLabel += '（点炮）';
+                
+                const change = pointChanges[player];
+                const changeClass = change > 0 ? 'positive' : (change < 0 ? 'negative' : 'neutral');
+                const changeSign = change > 0 ? '+' : '';
+                
+                details += `
+                    <div class="player-point-change">
+                        <div class="player-info">
+                            <div class="player-wind">${windName}</div>
+                            <div class="player-name">${playerLabel}</div>
+                        </div>
+                        <div class="point-change ${changeClass}">${changeSign}${change}点</div>
+                    </div>
+                `;
+            });
+            
+            // 添加总结信息
+            let summary = '<div class="summary">';
+            summary += `<div class="summary-item"><span>基本点数:</span><span>${totalPoint}点</span></div>`;
+
+            if (riichiBonus > 0) {  // 添加立直点棒数显示
+                summary += `<div class="summary-item"><span>立直点棒(${riichiBonus/1000}本×1000):</span><span>+${riichiBonus}点</span></div>`;
             }
 
+            if (bonusStickCount > 0) {
+                if (settleType === 'ron') {
+                    const bonusPoints = bonusStickCount * 300;
+                    summary += `<div class="summary-item"><span>本场点数(${bonusStickCount}本场×300):</span><span>+${bonusPoints}点</span></div>`;
+                } else {
+                    const bonusPoints = bonusStickCount * 100;
+                    summary += `<div class="summary-item"><span>本场点数(${bonusStickCount}本场×100):</span><span>每人${bonusPoints}点</span></div>`;
+                }
+            }
+
+            // 如果是荣和，添加点炮者信息
+            if (settleType === 'ron') {
+                const shooterWind = getWindByPlayer(shooter);
+                const shooterWindName = getWindChineseName(shooterWind);
+                summary += `<div class="summary-item"><span>点炮者:</span><span>${shooterWindName}风</span></div>`;
+            }
+
+            summary += '</div>';
+            
             closePointModal();
             renderPointButtons();
+            
+            // 显示和牌详细点数变化
+            showSettleDetails('和牌点数结算详情', details + summary);
         }
 
         pointModal.addEventListener('click', (e) => {
@@ -674,11 +1370,25 @@
                 closePointModal();
             }
         });
+        
+        settleDetailsModal.addEventListener('click', (e) => {
+            if (e.target === settleDetailsModal) {
+                closeSettleDetails();
+            }
+        });
+        
+        abortModal.addEventListener('click', (e) => {
+            if (e.target === abortModal) {
+                closeAbortModal();
+            }
+        });
 
-        // 初始化：渲染点数按钮、更新点炮家选项、显示立直点棒数
+        // 初始化：渲染点数按钮、更新点炮家选项、显示立直点棒数、设置本场数按钮事件
         renderPointButtons();
         updateShooterOptions();
         updateRiichiCountDisplay();
+        updateBonusCountDisplay();
+        setupBonusButton();
     </script>
 </body>
 </html>
