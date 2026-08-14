@@ -22,6 +22,17 @@ body{
 	min-height: 100vh;
 	padding: 24px 32px;
 }
+#bg-layer{
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+}
+#bg-layer img{
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center;
+}
 .main{
 	display: flex;
 	justify-content: space-between;
@@ -118,6 +129,7 @@ body.link-white .links{
 </style>
 </head>
 <body>
+<div id="bg-layer" aria-hidden="true"></div>
 <div class="main">
     <div class="content">
         <h1>
@@ -144,11 +156,19 @@ body.link-white .links{
 <button id="switch-bg" type="button">换背景</button>
 <script>
 (function(){
-	var imgs = ['ima/manosaba1.png', 'ima/manosaba2.png', 'ima/manosaba3.png', 'ima/manosaba4.png'];
+	var names = ['manosaba1', 'manosaba2', 'manosaba3', 'manosaba4'];
 	var current = -1;
+	var bgLayer = document.getElementById('bg-layer');
 	function setBackground(i){
 		current = i;
-		document.body.style.backgroundImage = 'url(' + imgs[i] + ')';
+		var img = document.createElement('img');
+		img.src = 'ima/' + names[i] + '-1080.jpg';
+		img.srcset = 'ima/' + names[i] + '-1080.jpg 1080w, ima/' + names[i] + '-1600.jpg 1600w, ima/' + names[i] + '.png 2048w';
+		img.sizes = '100vw';
+		img.alt = '';
+		img.setAttribute('fetchpriority', 'high');
+		bgLayer.innerHTML = '';
+		bgLayer.appendChild(img);
 		document.body.className = '';
 		if (i === 0) {
 			document.body.className = 'text-white';
@@ -159,7 +179,7 @@ body.link-white .links{
 	function pickRandom(){
 		var i;
 		do {
-			i = Math.floor(Math.random() * imgs.length);
+			i = Math.floor(Math.random() * names.length);
 		} while (i === current);
 		return i;
 	}
