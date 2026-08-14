@@ -546,9 +546,110 @@
         .abort-btn.nagashi-btn:hover {
             background: #b71c1c;
         }
+
+        /* 右上角信息按钮 */
+        .info-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #332e29;
+            color: #332e29;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            line-height: 1;
+        }
+        .info-btn:hover {
+            background: #332e29;
+            color: #fff;
+        }
+        .info-icon {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-style: italic;
+            font-weight: bold;
+            font-size: 28px;
+            line-height: 1;
+        }
+
+        /* 使用说明弹窗 */
+        .info-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+        .info-content {
+            background: #f5f2eb;
+            border: 5px solid #332e29;
+            border-radius: 12px;
+            padding: 30px;
+            width: 620px;
+            max-width: 90vw;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+            color: #332e29;
+        }
+        .info-content h2 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .info-content ol {
+            padding-left: 22px;
+            margin: 0;
+        }
+        .info-content li {
+            margin-bottom: 12px;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+        .info-content li:last-child {
+            margin-bottom: 0;
+        }
+        .info-content ul {
+            padding-left: 18px;
+            margin: 6px 0 0;
+        }
+        .info-content .hl {
+            color: #c62828;
+            font-weight: bold;
+        }
+        .close-info-btn {
+            display: block;
+            margin: 25px auto 0;
+            padding: 12px 30px;
+            font-size: 16px;
+            background: #332e29;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .close-info-btn:hover {
+            background: #5a5249;
+        }
     </style>
 </head>
 <body>
+    <button class="info-btn" onclick="openInfo()" title="使用说明"><span class="info-icon">i</span></button>
     <div class="compass-container">
         <!-- 立直点棒数统计 - 缩小字体和边框 -->
         <div class="riichi-stick-count" id="riichi-count-container">
@@ -674,6 +775,34 @@
         </div>
     </div>
 
+    <!-- 使用说明弹窗 -->
+    <div class="info-mask" id="info-modal">
+        <div class="info-content">
+            <h2>日麻风盘使用说明</h2>
+            <ol>
+                <li><b>场风切换</b>：点击风盘中央的「东/南」按钮，在东风场与南风场之间切换。</li>
+                <li><b>玩家点数与和牌结算</b>：风盘四周四个方块显示各家点数（初始 25000），点击任意一家打开结算窗口：
+                    <ul>
+                        <li><b>荣和</b>：选择「荣和」，输入和牌点数，再选择点炮家；点炮者支付点数，和牌者获得点数。</li>
+                        <li><b>自摸</b>：选择「自摸」，输入和牌点数；庄家自摸时其余三家平分，子家自摸时庄家付一半、另两家各付四分之一（均向上取整到 100）。</li>
+                    </ul>
+                    确认后自动弹出各家点数变化明细。
+                </li>
+                <li><b>立直</b>：点击风盘四角的「北/东/南/西」，该风位的玩家宣布立直（扣 1000 点并亮出点棒），再点一次解除立直（退还 1000 点）。</li>
+                <li><b>立直点棒数</b>：左上角显示场上立直点棒总数；和牌结算时，所有点棒（1000 点/本）自动并入和牌者，结算后清零。</li>
+                <li><b>本场数</b>：点击「本场」计数 +1，长按 1 秒清零；和牌结算时自动计入（荣和：点炮者额外支付 <span class="hl">300 × 本场数</span>；自摸：每家额外支付 <span class="hl">100 × 本场数</span>）。</li>
+                <li><b>流局</b>：点击「流局」，勾选听牌的玩家后：
+                    <ul>
+                        <li><b>听牌结算</b>：1 人听牌（+3000 / 其余各 −1000），2 人听牌（±1500），3 人听牌（+1000 / 未听 −3000）。</li>
+                        <li><b>流局满贯</b>：庄家 12000（三家各付 4000），子家 8000（庄家付 4000、其余各付 2000）。</li>
+                    </ul>
+                </li>
+                <li><b>旋转与重置</b>：「旋转 90 度」将风盘与风位顺时针轮换；「重置风盘」一键恢复初始状态（点数 25000，立直、点棒数、本场数清零）。</li>
+            </ol>
+            <button class="close-info-btn" onclick="closeInfo()">知道了</button>
+        </div>
+    </div>
+
     <script>
         let currentAngle = 0;
         const compass = document.getElementById('windCompass');
@@ -686,6 +815,15 @@
         const settleDetailsEl = document.getElementById('settle-details');
         const settleDetailsTitleEl = document.getElementById('settle-details-title');
         const abortModal = document.getElementById('abort-modal');
+        const infoModal = document.getElementById('info-modal');
+
+        function openInfo() {
+            infoModal.style.display = 'flex';
+        }
+
+        function closeInfo() {
+            infoModal.style.display = 'none';
+        }
 
         // 全局玩家点数配置（初始25000）
         let playerPoints = {
@@ -1414,6 +1552,12 @@
         abortModal.addEventListener('click', (e) => {
             if (e.target === abortModal) {
                 closeAbortModal();
+            }
+        });
+
+        infoModal.addEventListener('click', (e) => {
+            if (e.target === infoModal) {
+                closeInfo();
             }
         });
 
