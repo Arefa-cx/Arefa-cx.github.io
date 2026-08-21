@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#14161a">
+<title>方向训练器</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{
+	font-family:"Segoe UI","Microsoft YaHei",sans-serif;
+	background:#14161a;
+	color:#e8eaed;
+	display:flex;
+	flex-direction:column;
+	min-height:100vh;
+	overflow:hidden;
+	user-select:none;
+	touch-action:manipulation;
+	-webkit-tap-highlight-color:transparent;
+}
+button,label,input{touch-action:manipulation;}
+/* ===== 右上角齿轮按钮 ===== */
+#settings-btn{
+	position:fixed;
+	top:calc(18px + env(safe-area-inset-top));
+	right:calc(18px + env(safe-area-inset-right));
+	width:48px;height:48px;
+	display:flex;align-items:center;justify-content:center;
+	background:rgba(255,255,255,.08);
+	border:1px solid rgba(255,255,255,.16);
+	border-radius:50%;
+	color:#c8cdd4;
+	cursor:pointer;
+	transition:transform .5s ease,background .2s,color .2s;
+	z-index:20;
+}
+#settings-btn svg{width:26px;height:26px;}
+#settings-btn:hover{background:rgba(255,255,255,.16);color:#fff;}
+#settings-btn.rotated{transform:rotate(180deg);}
+/* ===== 主区：箭头 ===== */
+main{
+	flex:1;
+	display:flex;flex-direction:column;
+	align-items:center;justify-content:center;
+	position:relative;
+}
+#arrow-wrap{
+	width:min(54vmin,320px);
+	height:min(54vmin,320px);
+	display:flex;align-items:center;justify-content:center;
+	transition:opacity .3s;
+}
+body.idle #arrow-wrap{opacity:0;}
+#arrow{
+	width:100%;height:100%;
+	fill:#5fd0f0;
+	filter:drop-shadow(0 10px 28px rgba(95,208,240,.28));
+	transition:fill .3s;
+	transform-box:view-box;
+	transform-origin:50% 50%;
+}
+body.paused #arrow{fill:#555b64;filter:none;}
+#hint{
+	position:absolute;inset:0;
+	display:flex;align-items:center;justify-content:center;
+	color:#7d838c;font-size:18px;letter-spacing:2px;
+	pointer-events:none;
+}
+#hint.hidden{display:none;}
+/* ===== 底部控制 ===== */
+footer{
+	padding:26px 0 calc(34px + env(safe-area-inset-bottom));
+	display:flex;flex-direction:column;align-items:center;gap:12px;
+}
+#start-pause{
+	min-width:180px;
+	padding:14px 48px;
+	font-size:20px;letter-spacing:8px;text-indent:8px;
+	font-weight:600;
+	color:#14161a;
+	background:#5fd0f0;
+	border:none;border-radius:999px;
+	cursor:pointer;
+	transition:filter .2s,transform .1s,background .3s;
+}
+#start-pause:hover{filter:brightness(1.1);}
+#start-pause:active{transform:scale(.97);}
+#start-pause.running{background:#ff8a5c;}
+#status{
+	font-size:14px;color:#8b919b;
+	min-height:20px;
+}
+/* ===== 设置面板 ===== */
+#overlay{
+	position:fixed;inset:0;
+	background:rgba(0,0,0,.55);
+	z-index:30;
+	display:flex;align-items:center;justify-content:center;
+	opacity:0;visibility:hidden;
+	transition:opacity .2s;
+}
+#overlay.open{opacity:1;visibility:visible;}
+.panel{
+	width:min(92vw,420px);
+	max-height:calc(100vh - 40px);
+	overflow-y:auto;
+	background:#1d2127;
+	border:1px solid rgba(255,255,255,.1);
+	border-radius:16px;
+	padding:24px 26px 22px;
+	transform:translateY(14px) scale(.97);
+	transition:transform .2s;
+}
+#overlay.open .panel{transform:none;}
+.panel h2{
+	font-size:18px;font-weight:600;
+	display:flex;justify-content:space-between;align-items:center;
+	margin-bottom:20px;
+}
+#panel-close{
+	background:none;border:none;color:#8b919b;
+	font-size:22px;cursor:pointer;line-height:1;
+	padding:2px 6px;
+}
+#panel-close:hover{color:#fff;}
+.field{margin-bottom:18px;}
+.field .label{
+	font-size:14px;color:#aab0b8;
+	margin-bottom:10px;
+}
+.interval-row{display:flex;align-items:center;gap:10px;}
+#interval-input{
+	width:110px;
+	padding:9px 12px;
+	font-size:16px;
+	color:#e8eaed;
+	background:#14161a;
+	border:1px solid rgba(255,255,255,.18);
+	border-radius:8px;
+	outline:none;
+}
+#interval-input:focus{border-color:#5fd0f0;}
+.interval-row .unit{color:#8b919b;font-size:14px;}
+.dir-grid{
+	display:grid;
+	grid-template-columns:repeat(3,1fr);
+	gap:8px;
+}
+.dir-grid label{
+	display:flex;align-items:center;justify-content:center;
+	gap:6px;
+	padding:12px 0;
+	min-height:44px;
+	font-size:14px;
+	background:#14161a;
+	border:1px solid rgba(255,255,255,.14);
+	border-radius:8px;
+	cursor:pointer;
+	transition:border-color .15s,background .15s,color .15s;
+}
+.dir-grid label:hover{border-color:rgba(255,255,255,.35);}
+.dir-grid label.checked{
+	background:rgba(95,208,240,.14);
+	border-color:#5fd0f0;
+	color:#8fe0f7;
+}
+.dir-grid input{display:none;}
+.dir-grid .cell-empty{visibility:hidden;}
+.dir-grid label svg{
+	width:18px;height:18px;
+	fill:currentColor;
+	display:block;
+	transform-box:view-box;
+	transform-origin:50% 50%;
+}
+.dir-tools{
+	display:flex;gap:10px;margin-top:10px;
+}
+.dir-tools button{
+	flex:1;
+	padding:8px 0;
+	font-size:13px;
+	background:#14161a;
+	color:#aab0b8;
+	border:1px solid rgba(255,255,255,.14);
+	border-radius:8px;
+	cursor:pointer;
+}
+.dir-tools button:hover{color:#fff;border-color:rgba(255,255,255,.35);}
+.panel-actions{
+	display:flex;gap:12px;margin-top:22px;
+}
+.panel-actions button{
+	flex:1;
+	padding:12px 0;
+	font-size:15px;
+	border-radius:10px;
+	cursor:pointer;
+}
+#save-btn{
+	background:#5fd0f0;color:#14161a;border:none;font-weight:600;
+}
+#save-btn:hover{filter:brightness(1.1);}
+#cancel-btn{
+	background:transparent;color:#aab0b8;
+	border:1px solid rgba(255,255,255,.2);
+}
+#cancel-btn:hover{color:#fff;border-color:rgba(255,255,255,.4);}
+/* ===== 提示气泡 ===== */
+#toast{
+	position:fixed;
+	bottom:calc(110px + env(safe-area-inset-bottom));
+	left:50%;
+	transform:translateX(-50%) translateY(8px);
+	background:#3a2118;color:#ffb49a;
+	border:1px solid rgba(255,138,92,.5);
+	padding:10px 18px;border-radius:8px;
+	font-size:14px;
+	opacity:0;visibility:hidden;
+	transition:all .2s;
+	z-index:40;
+	white-space:nowrap;
+}
+#toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body class="idle">
+
+<button id="settings-btn" type="button" title="设置" aria-label="设置">
+	<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+		<circle cx="12" cy="12" r="3"></circle>
+		<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+	</svg>
+</button>
+
+<main>
+	<div id="hint">点击下方「开始」开始训练</div>
+	<div id="arrow-wrap">
+		<svg id="arrow" viewBox="0 0 100 100" aria-hidden="true">
+			<polygon points="50,2 88,52 63,52 63,98 37,98 37,52 12,52"/>
+		</svg>
+	</div>
+</main>
+
+<footer>
+	<button id="start-pause" type="button">开 始</button>
+	<div id="status"></div>
+</footer>
+
+<!-- 设置面板 -->
+<div id="overlay" aria-hidden="true">
+	<div class="panel" role="dialog" aria-label="设置">
+		<h2>设置<button id="panel-close" type="button" aria-label="关闭">✕</button></h2>
+
+		<div class="field">
+			<div class="label">每次间隔</div>
+			<div class="interval-row">
+				<input id="interval-input" type="number" min="0.1" step="0.1" value="1">
+				<span class="unit">秒</span>
+			</div>
+		</div>
+
+		<div class="field">
+			<div class="label">方向（可多选）</div>
+			<div class="dir-grid" id="dir-grid"></div>
+			<div class="dir-tools">
+				<button type="button" id="select-all">全选</button>
+				<button type="button" id="select-none">清空</button>
+			</div>
+		</div>
+
+		<div class="panel-actions">
+			<button type="button" id="cancel-btn">取消</button>
+			<button type="button" id="save-btn">保存</button>
+		</div>
+	</div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+	'use strict';
+
+	// 8 个方向：deg 为箭头（默认朝上）顺时针旋转的角度
+	var DIRECTIONS = [
+		{id:'up-left',   name:'左上', deg:315},
+		{id:'up',        name:'上',   deg:0},
+		{id:'up-right',  name:'右上', deg:45},
+		{id:'left',      name:'左',   deg:270},
+		{id:'right',     name:'右',   deg:90},
+		{id:'down-left', name:'左下', deg:225},
+		{id:'down',      name:'下',   deg:180},
+		{id:'down-right',name:'右下', deg:135}
+	];
+	// 3x3 键位排布，中间为占位
+	var GRID_ORDER = ['up-left','up','up-right','left',null,'right','down-left','down','down-right'];
+
+	var KEY_INTERVAL = 'dirtrain.interval';
+	var KEY_DIRS     = 'dirtrain.directions';
+
+	var intervalSec = 1;                      // 每次间隔（秒）
+	var selected = DIRECTIONS.map(function(d){ return d.id; }); // 默认全选
+
+	var timer = null;
+	var running = false;
+	var count = 0;
+
+	function $(id){ return document.getElementById(id); }
+	var arrow          = $('arrow');
+	var hint           = $('hint');
+	var btn            = $('start-pause');
+	var statusEl       = $('status');
+	var settingsBtn    = $('settings-btn');
+	var overlay        = $('overlay');
+	var intervalInput  = $('interval-input');
+	var dirGrid        = $('dir-grid');
+	var panelClose     = $('panel-close');
+	var cancelBtn      = $('cancel-btn');
+	var saveBtn        = $('save-btn');
+	var selectAllBtn   = $('select-all');
+	var selectNoneBtn  = $('select-none');
+	var toast          = $('toast');
+	var toastTimer     = null;
+
+	function dirById(id){
+		for(var i = 0; i < DIRECTIONS.length; i++){
+			if(DIRECTIONS[i].id === id) return DIRECTIONS[i];
+		}
+		return DIRECTIONS[0];
+	}
+
+	/* ---------- 持久化 ---------- */
+	function loadSettings(){
+		try{
+			var iv = localStorage.getItem(KEY_INTERVAL);
+			if(iv !== null){
+				var v = parseFloat(iv);
+				if(isFinite(v) && v > 0) intervalSec = Math.max(0.1, v);
+			}
+			var ds = localStorage.getItem(KEY_DIRS);
+			if(ds !== null){
+				var arr = JSON.parse(ds);
+				if(Array.isArray(arr) && arr.length > 0){
+					var valid = DIRECTIONS.map(function(d){ return d.id; });
+					var filtered = arr.filter(function(id){ return valid.indexOf(id) !== -1; });
+					if(filtered.length > 0) selected = filtered;
+				}
+			}
+		}catch(e){}
+	}
+	function saveSettings(){
+		try{
+			localStorage.setItem(KEY_INTERVAL, String(intervalSec));
+			localStorage.setItem(KEY_DIRS, JSON.stringify(selected));
+		}catch(e){}
+	}
+
+	/* ---------- 箭头显示 ---------- */
+	function showArrow(dir){
+		var deg = dir.deg;
+		arrow.style.transform = 'rotate(' + deg + 'deg)';
+		arrow.animate(
+			[
+				{transform:'rotate(' + deg + 'deg) scale(0.55)', opacity:0.2},
+				{transform:'rotate(' + deg + 'deg) scale(1)',    opacity:1}
+			],
+			{duration:160, easing:'ease-out'}
+		);
+	}
+	function updateStatus(){
+		var iv = '间隔 ' + intervalSec + ' 秒';
+		if(running){
+			statusEl.textContent = iv + ' · 已显示 ' + count + ' 次';
+		}else if(count > 0){
+			statusEl.textContent = '已暂停 · 共显示 ' + count + ' 次 · ' + iv;
+		}else{
+			statusEl.textContent = iv;
+		}
+	}
+
+	/* ---------- 开始 / 暂停 ---------- */
+	function pickRandom(){
+		var pool = DIRECTIONS.filter(function(d){ return selected.indexOf(d.id) !== -1; });
+		return pool[Math.floor(Math.random() * pool.length)];
+	}
+	function tick(){
+		showArrow(pickRandom());
+		count++;
+		updateStatus();
+	}
+	function start(){
+		if(selected.length === 0){
+			showToast('请至少选择一个方向');
+			openPanel();
+			return;
+		}
+		running = true;
+		btn.textContent = '暂 停';
+		btn.classList.add('running');
+		document.body.classList.remove('idle','paused');
+		hint.classList.add('hidden');
+		tick();                       // 开始时立即显示一个箭头
+		restartTimer();
+	}
+	function pause(){
+		running = false;
+		if(timer){ clearInterval(timer); timer = null; }
+		btn.textContent = '继 续';
+		btn.classList.remove('running');
+		document.body.classList.add('paused');
+		updateStatus();
+	}
+	function toggle(){ running ? pause() : start(); }
+	function restartTimer(){
+		if(timer){ clearInterval(timer); timer = null; }
+		timer = setInterval(tick, intervalSec * 1000);
+	}
+
+	/* ---------- 设置面板 ---------- */
+	function buildDirGrid(){
+		GRID_ORDER.forEach(function(id){
+			var cell = document.createElement('div');
+			if(!id){
+				cell.className = 'cell-empty';
+				dirGrid.appendChild(cell);
+				return;
+			}
+			var d = dirById(id);
+			var label = document.createElement('label');
+			var input = document.createElement('input');
+			var svg  = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+			var poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+			input.type = 'checkbox';
+			input.value = id;
+			input.id = 'dir-' + id;
+			label.title = d.name;   // 悬停提示方向名
+			svg.setAttribute('viewBox', '0 0 100 100');
+			svg.setAttribute('aria-hidden', 'true');
+			svg.style.transform = 'rotate(' + d.deg + 'deg)';
+			poly.setAttribute('points', '50,2 88,52 63,52 63,98 37,98 37,52 12,52');
+			svg.appendChild(poly);
+			label.appendChild(input);
+			label.appendChild(svg);
+			input.addEventListener('change', function(){
+				label.classList.toggle('checked', input.checked);
+			});
+			cell.appendChild(label);
+			dirGrid.appendChild(cell);
+		});
+	}
+	function openPanel(){
+		intervalInput.value = intervalSec;
+		dirGrid.querySelectorAll('input').forEach(function(inp){
+			inp.checked = selected.indexOf(inp.value) !== -1;
+			inp.parentElement.classList.toggle('checked', inp.checked);
+		});
+		overlay.classList.add('open');
+		settingsBtn.classList.add('rotated');
+	}
+	function closePanel(){
+		overlay.classList.remove('open');
+		settingsBtn.classList.remove('rotated');
+	}
+	function handleSave(){
+		var v = parseFloat(intervalInput.value);
+		if(!isFinite(v) || v <= 0){
+			showToast('请输入大于 0 的间隔（秒）');
+			return;
+		}
+		var checked = [];
+		dirGrid.querySelectorAll('input:checked').forEach(function(inp){
+			checked.push(inp.value);
+		});
+		if(checked.length === 0){
+			showToast('请至少选择一个方向');
+			return;
+		}
+		intervalSec = Math.max(0.1, v);
+		selected = checked;
+		intervalInput.value = intervalSec;
+		saveSettings();
+		closePanel();
+		updateStatus();
+		if(running) restartTimer();   // 运行中修改间隔，立即生效
+	}
+
+	/* ---------- 提示气泡 ---------- */
+	function showToast(msg){
+		toast.textContent = msg;
+		toast.classList.add('show');
+		if(toastTimer) clearTimeout(toastTimer);
+		toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 1800);
+	}
+
+	/* ---------- 事件 ---------- */
+	btn.addEventListener('click', toggle);
+	settingsBtn.addEventListener('click', function(){
+		if(overlay.classList.contains('open')) closePanel();
+		else openPanel();
+	});
+	panelClose.addEventListener('click', closePanel);
+	cancelBtn.addEventListener('click', closePanel);
+	overlay.addEventListener('click', function(e){
+		if(e.target === overlay) closePanel();
+	});
+	saveBtn.addEventListener('click', handleSave);
+	selectAllBtn.addEventListener('click', function(){
+		dirGrid.querySelectorAll('input').forEach(function(inp){
+			inp.checked = true;
+			inp.parentElement.classList.add('checked');
+		});
+	});
+	selectNoneBtn.addEventListener('click', function(){
+		dirGrid.querySelectorAll('input').forEach(function(inp){
+			inp.checked = false;
+			inp.parentElement.classList.remove('checked');
+		});
+	});
+	document.addEventListener('keydown', function(e){
+		if(e.key === 'Escape' && overlay.classList.contains('open')){
+			closePanel();
+			return;
+		}
+		// 空格键：开始/暂停（面板关闭且焦点不在控件上时）
+		if(e.code === 'Space' && !overlay.classList.contains('open') && e.target === document.body){
+			e.preventDefault();
+			toggle();
+		}
+	});
+
+	/* ---------- 初始化 ---------- */
+	loadSettings();
+	buildDirGrid();
+	showArrow(DIRECTIONS[0]);   // 默认朝上，开始后才会被随机替换
+	updateStatus();
+})();
+</script>
+</body>
+</html>
