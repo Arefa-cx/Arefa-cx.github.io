@@ -130,9 +130,18 @@ footer{
 	font-size:14px;color:#aab0b8;
 	margin-bottom:10px;
 }
-.interval-row{display:flex;align-items:center;gap:10px;}
-#interval-input{
-	width:110px;
+.range-row{display:flex;align-items:flex-end;gap:10px;}
+.range-item{
+	flex:1;
+	display:flex;flex-direction:column;gap:6px;
+}
+.range-label{font-size:12px;color:#8b919b;}
+.range-sep{
+	font-size:16px;color:#8b919b;
+	padding-bottom:9px;
+}
+.range-item input{
+	width:100%;
 	padding:9px 12px;
 	font-size:16px;
 	color:#e8eaed;
@@ -141,8 +150,7 @@ footer{
 	border-radius:8px;
 	outline:none;
 }
-#interval-input:focus{border-color:#5fd0f0;}
-.interval-row .unit{color:#8b919b;font-size:14px;}
+.range-item input:focus{border-color:#5fd0f0;}
 .dir-grid{
 	display:grid;
 	grid-template-columns:repeat(3,1fr);
@@ -255,10 +263,17 @@ footer{
 		<h2>设置<button id="panel-close" type="button" aria-label="关闭">✕</button></h2>
 
 		<div class="field">
-			<div class="label">每次间隔</div>
-			<div class="interval-row">
-				<input id="interval-input" type="number" min="0.1" step="0.1" value="1">
-				<span class="unit">秒</span>
+			<div class="label">随机间隔（秒）</div>
+			<div class="range-row">
+				<div class="range-item">
+					<span class="range-label">最短</span>
+					<input id="min-input" type="number" min="0.1" step="0.1" value="1">
+				</div>
+				<span class="range-sep">~</span>
+				<div class="range-item">
+					<span class="range-label">最长</span>
+					<input id="max-input" type="number" min="0.1" step="0.1" value="4">
+				</div>
 			</div>
 		</div>
 
@@ -298,10 +313,12 @@ footer{
 	// 3x3 键位排布，中间为占位
 	var GRID_ORDER = ['up-left','up','up-right','left',null,'right','down-left','down','down-right'];
 
-	var KEY_INTERVAL = 'dirtrain.interval';
-	var KEY_DIRS     = 'dirtrain.directions';
+	var KEY_MIN = 'dirtrain.minSec';
+	var KEY_MAX = 'dirtrain.maxSec';
+	var KEY_DIRS = 'dirtrain.directions';
 
-	var intervalSec = 1;                      // 每次间隔（秒）
+	var minSec = 1;                           // 随机间隔下限（秒）
+	var maxSec = 4;                           // 随机间隔上限（秒）
 	var selected = DIRECTIONS.map(function(d){ return d.id; }); // 默认全选
 
 	var timer = null;
@@ -315,7 +332,8 @@ footer{
 	var statusEl       = $('status');
 	var settingsBtn    = $('settings-btn');
 	var overlay        = $('overlay');
-	var intervalInput  = $('interval-input');
+	var minInput        = $('min-input');
+	var maxInput        = $('max-input');
 	var dirGrid        = $('dir-grid');
 	var panelClose     = $('panel-close');
 	var cancelBtn      = $('cancel-btn');
@@ -335,10 +353,23 @@ footer{
 	/* ---------- 持久化 ---------- */
 	function loadSettings(){
 		try{
-			var iv = localStorage.getItem(KEY_INTERVAL);
-			if(iv !== null){
-				var v = parseFloat(iv);
-				if(isFinite(v) && v > 0) intervalSec = Math.max(0.1, v);
+			// 兼容旧版单一间隔设置：未设置过范围时，沿用旧间隔
+			if(localStorage.getItem(KEY_MIN) === null && localStorage.getItem(KEY_MAX) === null){
+				var old = localStorage.getItem('dirtrain.interval');
+				if(old !== null){
+					var ov = parseFloat(old);
+					if(isFinite(ov) && ov > 0){ minSec = Math.max(0.1, ov); maxSec = minSec; }
+				}
+			}
+			var mn = localStorage.getItem(KEY_MIN);
+			if(mn !== null){
+				var v = parseFloat(mn);
+				if(isFinite(v) && v > 0) minSec = Math.max(0.1, v);
+			}
+			var mx = localStorage.getItem(KEY_MAX);
+			if(mx !== null){
+				var w = parseFloat(mx);
+				if(isFinite(w) && w >= minSec) maxSec = Math.max(0.1, w);
 			}
 			var ds = localStorage.getItem(KEY_DIRS);
 			if(ds !== null){
@@ -350,10 +381,12 @@ footer{
 				}
 			}
 		}catch(e){}
+		if(maxSec < minSec) maxSec = minSec;   // 数据异常时保证上限不小于下限
 	}
 	function saveSettings(){
 		try{
-			localStorage.setItem(KEY_INTERVAL, String(intervalSec));
+			localStorage.setItem(KEY_MIN, String(minSec));
+			localStorage.setItem(KEY_MAX, String(maxSec));
 			localStorage.setItem(KEY_DIRS, JSON.stringify(selected));
 		}catch(e){}
 	}
@@ -371,7 +404,9 @@ footer{
 		);
 	}
 	function updateStatus(){
-		var iv = '间隔 ' + intervalSec + ' 秒';
+		var iv = minSec === maxSec
+			? '间隔 ' + minSec + ' 秒'
+			: '随机 ' + minSec + '~' + maxSec + ' 秒';
 		if(running){
 			statusEl.textContent = iv + ' · 已显示 ' + count + ' 次';
 		}else if(count > 0){
@@ -386,10 +421,19 @@ footer{
 		var pool = DIRECTIONS.filter(function(d){ return selected.indexOf(d.id) !== -1; });
 		return pool[Math.floor(Math.random() * pool.length)];
 	}
+	function randomDelay(){
+		return (minSec + Math.random() * (maxSec - minSec)) * 1000;
+	}
 	function tick(){
 		showArrow(pickRandom());
 		count++;
 		updateStatus();
+		scheduleNext();   // 本次显示后，按随机时长调度下一次
+	}
+	function scheduleNext(){
+		if(!running) return;
+		if(timer){ clearTimeout(timer); timer = null; }
+		timer = setTimeout(tick, randomDelay());
 	}
 	function start(){
 		if(selected.length === 0){
@@ -402,8 +446,7 @@ footer{
 		btn.classList.add('running');
 		document.body.classList.remove('idle','paused');
 		hint.classList.add('hidden');
-		tick();                       // 开始时立即显示一个箭头
-		restartTimer();
+		tick();                       // 开始时立即显示一个箭头（并调度下一次）
 	}
 	function pause(){
 		running = false;
@@ -414,9 +457,8 @@ footer{
 		updateStatus();
 	}
 	function toggle(){ running ? pause() : start(); }
-	function restartTimer(){
-		if(timer){ clearInterval(timer); timer = null; }
-		timer = setInterval(tick, intervalSec * 1000);
+	function restartTimer(){   // 设置变化后重新计时（未运行时无效果）
+		scheduleNext();
 	}
 
 	/* ---------- 设置面板 ---------- */
@@ -452,7 +494,8 @@ footer{
 		});
 	}
 	function openPanel(){
-		intervalInput.value = intervalSec;
+		minInput.value = minSec;
+		maxInput.value = maxSec;
 		dirGrid.querySelectorAll('input').forEach(function(inp){
 			inp.checked = selected.indexOf(inp.value) !== -1;
 			inp.parentElement.classList.toggle('checked', inp.checked);
@@ -465,9 +508,14 @@ footer{
 		settingsBtn.classList.remove('rotated');
 	}
 	function handleSave(){
-		var v = parseFloat(intervalInput.value);
-		if(!isFinite(v) || v <= 0){
+		var mn = parseFloat(minInput.value);
+		var mx = parseFloat(maxInput.value);
+		if(!isFinite(mn) || mn <= 0 || !isFinite(mx) || mx <= 0){
 			showToast('请输入大于 0 的间隔（秒）');
+			return;
+		}
+		if(mx < mn){
+			showToast('上限不能小于下限');
 			return;
 		}
 		var checked = [];
@@ -478,13 +526,15 @@ footer{
 			showToast('请至少选择一个方向');
 			return;
 		}
-		intervalSec = Math.max(0.1, v);
+		minSec = Math.max(0.1, mn);
+		maxSec = Math.max(0.1, mx);
 		selected = checked;
-		intervalInput.value = intervalSec;
+		minInput.value = minSec;
+		maxInput.value = maxSec;
 		saveSettings();
 		closePanel();
 		updateStatus();
-		if(running) restartTimer();   // 运行中修改间隔，立即生效
+		restartTimer();   // 运行中修改范围，立即生效
 	}
 
 	/* ---------- 提示气泡 ---------- */
